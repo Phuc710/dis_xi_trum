@@ -17,7 +17,7 @@ global.client = new Client({
 
 client.config = require('./config');
 
-// Khởi tạo player
+// Khởi tạo player với encryption fix
 const player = new Player(client, {
     ...client.config.opt.discordPlayer,
     leaveOnEmpty: client.config.opt.leaveOnEmpty,
@@ -29,6 +29,11 @@ const player = new Player(client, {
     maxVolume: client.config.opt.maxVol,
     skipFFmpeg: false,
     ignoreInternalFilters: true,
+    // Voice connection options to fix encryption
+    connectionOptions: {
+        deaf: true,
+        selfDeaf: true
+    }
 });
 
 // Đăng ký extractor
@@ -41,7 +46,7 @@ try {
     console.log('⚠️ YouTube extractor failed');
 }
 
-// Triệt để block tất cả YouTube.js spam
+// Override để block tất cả YouTube.js spam
 const originalLog = console.log;
 const originalWarn = console.warn;
 const originalError = console.error;
@@ -81,7 +86,11 @@ console.log = console.warn = console.error = (...args) => {
         str.includes('▶️ Is playing') ||
         str.includes('✅ Track loaded') ||
         str.includes('📊 Current queue') ||
-        str.includes('📭 empty')) {
+        str.includes('🔭 empty') ||
+        // Block encryption errors
+        str.includes('No compatible encryption modes') ||
+        str.includes('aead_aes256_gcm_rtpsize') ||
+        str.includes('aead_xchacha20_poly1305_rtpsize')) {
         return;
     }
     
@@ -91,17 +100,31 @@ console.log = console.warn = console.error = (...args) => {
 
 // Error handling - QUAN TRỌNG để bot hoạt động
 const handleError = (error) => {
-    // Chỉ im lặng với YouTube.js parser errors
+    // Chỉ im lặng với YouTube.js parser errors và encryption errors
     if (error.message?.includes('GridShelfView') || 
-        error.message?.includes('SectionHeaderView')) {
+        error.message?.includes('SectionHeaderView') ||
+        error.message?.includes('No compatible encryption modes')) {
         return;
     }
     console.error(`❌ ${error.message}`);
 };
 
-// Player error handling - KHÔNG được bỏ qua!
+// Player error handling với encryption fix
 player.events.on('error', (queue, error) => {
+    // Bỏ qua encryption errors
+    if (error.message?.includes('No compatible encryption modes')) {
+        return;
+    }
     console.error(`❌ Player Error: ${error.message}`);
+});
+
+// Voice connection error handling
+player.events.on('connectionError', (queue, error) => {
+    // Bỏ qua encryption errors
+    if (error.message?.includes('No compatible encryption modes')) {
+        return;
+    }
+    console.error(`❌ Connection Error: ${error.message}`);
 });
 
 // Suppress chỉ deprecation warnings

@@ -2,7 +2,7 @@
 module.exports = {
     app: {
         token: process.env.DISCORD_TOKEN || 'xxx',
-        playing: 'Music || /help',
+        playing: 'Music chill ❤️',
         global: true,
         guild: process.env.GUILD_ID || 'xxx',
         extraMessages: true,
@@ -38,17 +38,24 @@ module.exports = {
         leaveOnEnd: true,
         leaveOnEndCooldown: 30000,
         discordPlayer: {
-            // Updated player options
+            // Updated player options with encryption fix
             ytdlOptions: {
                 quality: 'highestaudio',
                 highWaterMark: 1 << 25,
                 filter: 'audioonly'
             },
-            // Add these options
+            // Voice connection options
+            connectionOptions: {
+                deaf: true,
+                selfDeaf: true
+            },
+            // Add these options to fix encryption
             skipFFmpeg: false,
             ignoreInternalFilters: false,
             smoothVolume: true,
-            disableVolume: false
+            disableVolume: false,
+            // Force legacy encryption mode
+            useLegacyFFmpeg: true
         }
     }
 };
