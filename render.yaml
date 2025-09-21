@@ -1,0 +1,15 @@
+// render.yaml - Cấu hình cho Render
+services:
+  - type: web
+    name: music-bot-boo
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
