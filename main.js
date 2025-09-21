@@ -131,36 +131,3 @@ process.on('SIGINT', () => {
     client.destroy();
     process.exit(0);
 });
-
-const http = require('http');
-const server = http.createServer((req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    
-    const botInfo = {
-        name: "Music Bot + Boo",
-        status: client.isReady() ? 'Online' : 'Starting...',
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString(),
-        servers: client.guilds ? client.guilds.cache.size : 0,
-        users: client.users ? client.users.cache.size : 0,
-        ping: client.ws.ping,
-        booMood: global.booBot ? global.booBot.personality.currentMood : 'Not loaded'
-    };
-    
-    if (req.url === '/health') {
-        res.statusCode = 200;
-        res.end(JSON.stringify({ status: 'healthy', ...botInfo }, null, 2));
-    } else if (req.url === '/ping') {
-        res.setHeader('Content-Type', 'text/plain');
-        res.statusCode = 200;
-        res.end('pong');
-    } else {
-        res.statusCode = 200;
-        res.end(`🤖 Music Bot + Boo is running!\n${JSON.stringify(botInfo, null, 2)}`);
-    }
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🌐 HTTP Server running on port ${PORT}`);
-});

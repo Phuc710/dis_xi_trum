@@ -1,6 +1,8 @@
-// server.js - Tạo file này trong thư mục gốc
+// server.js
 const http = require('http');
-const client = require('./main'); // Import bot
+
+// Import và khởi động bot
+require('./main'); // Khởi động bot
 
 const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json');
@@ -23,12 +25,9 @@ const server = http.createServer((req, res) => {
         res.setHeader('Content-Type', 'text/plain');
         res.statusCode = 200;
         res.end('pong');
-    } else if (req.url === '/') {
+    } else {
         res.statusCode = 200;
         res.end(`🤖 Music Bot + Boo is running!\n${JSON.stringify(botInfo, null, 2)}`);
-    } else {
-        res.statusCode = 404;
-        res.end(JSON.stringify({ error: 'Not found' }));
     }
 });
 
@@ -36,12 +35,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🌐 HTTP Server running on port ${PORT}`);
 });
-
-// Keep alive ping
-setInterval(() => {
-    if (global.client && global.client.isReady()) {
-        console.log(`🔄 Keep alive - Guilds: ${global.client.guilds.cache.size}`);
-    }
-}, 300000); // 5 minutes
-
-module.exports = server;

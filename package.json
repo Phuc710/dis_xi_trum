@@ -6,8 +6,8 @@
     "repository": "https://github.com/Phuc710/dis_xi_trum",
     "description": "BOT MUSCI FIRST",
     "scripts": {
-        "start": "node main.js",
-        "dev": "nodemon main.js"
+        "start": "node server.js",
+        "dev": "nodemon server.js"
     },
     "dependencies": {
         "@discord-player/extractor": "^4.5.1",
