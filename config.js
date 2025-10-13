@@ -1,61 +1,37 @@
-// config.js
+const { ActivityType } = require('discord.js');
+
 module.exports = {
-    app: {
-        token: process.env.DISCORD_TOKEN || 'xxx',
-        playing: 'Music chill ❤️',
-        global: true,
-        guild: process.env.GUILD_ID || 'xxx',
-        extraMessages: true,
-        loopMessage: true,
-        lang: 'en',
-        enableEmojis: true,
-    },
+  ownerId: '589636439122378763',
+  token: "",
+  language: "en",
+  prefix: "!",
+  mongodbUri: "",
+  status: {
+    rotateDefault: [
+      {
+        name: "Cùng lắng nghe || /help",
+        type: "Playing"
+      }
+    ],
+    songStatus: true
+  },
+  excessCommands: {
+    "utility": true,
+    "other": true,
+    "economy": true
+  },
+  categories: {
+    "media": true,
+    "basic": true,
+    "utility": true,
+    "moderation": true,
+    "core": true,
+    "lavalink": true,
+    "music": true,
+    "distube": true,
+    "setups": true
+  },
+  spotifyClientId : "85aab1d51a174aad9eed6d7989f530e6",
+  spotifyClientSecret : "b2ad05aa725e434c88776a1be8eab6c2",
+}
 
-    emojis: {
-        'back': '⏪',
-        'skip': '⏩',
-        'ResumePause': '⏹️',  
-        'savetrack': '💾',
-        'volumeUp': '🔊',
-        'volumeDown': '🔉',
-        'loop': '🔁',      
-        'lyrics': '🎤', 
-        'clear': '🗑️',
-    },
-
-    opt: {
-        DJ: {
-            enabled: false,
-            roleName: '',
-            commands: []
-        },
-        Translate_Timeout: 10000,
-        maxVol: 100,
-        spotifyBridge: true,
-        volume: 75,
-        leaveOnEmpty: true,
-        leaveOnEmptyCooldown: 30000,
-        leaveOnEnd: true,
-        leaveOnEndCooldown: 30000,
-        discordPlayer: {
-            // Updated player options with encryption fix
-            ytdlOptions: {
-                quality: 'highestaudio',
-                highWaterMark: 1 << 25,
-                filter: 'audioonly'
-            },
-            // Voice connection options
-            connectionOptions: {
-                deaf: true,
-                selfDeaf: true
-            },
-            // Add these options to fix encryption
-            skipFFmpeg: false,
-            ignoreInternalFilters: false,
-            smoothVolume: true,
-            disableVolume: false,
-            // Force legacy encryption mode
-            useLegacyFFmpeg: true
-        }
-    }
-};

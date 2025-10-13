@@ -1,156 +1,194 @@
+const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 require('dotenv').config();
-
-const { Player } = require('discord-player');
-const { Client, GatewayIntentBits } = require('discord.js');
-const { YoutubeiExtractor } = require('discord-player-youtubei');
-
-// Tạo client
-global.client = new Client({
+const axios = require('axios');
+const config = require('./config.js');
+const colors = require('./UI/colors/colors');
+const loadLogHandlers = require('./logHandlers');
+const scanCommands = require('./utils/scanCommands');
+const { EmbedBuilder, Partials } = require('discord.js');
+const StatusManager = require('./utils/statusManager');
+const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildEmojisAndStickers,
+        GatewayIntentBits.GuildIntegrations,
+        GatewayIntentBits.GuildWebhooks,
+        GatewayIntentBits.GuildInvites,
+        GatewayIntentBits.GuildScheduledEvents
     ],
-    disableMentions: 'everyone',
+    partials: [Partials.Channel]
 });
+const { connectToDatabase } = require('./mongodb');
+client.commands = new Collection();
+require('events').defaultMaxListeners = 100;
 
-client.config = require('./config');
 
-// Khởi tạo player với encryption fix
-const player = new Player(client, {
-    ...client.config.opt.discordPlayer,
-    leaveOnEmpty: client.config.opt.leaveOnEmpty,
-    leaveOnEmptyCooldown: client.config.opt.leaveOnEmptyCooldown,
-    leaveOnEnd: client.config.opt.leaveOnEnd,  
-    leaveOnEndCooldown: client.config.opt.leaveOnEndCooldown,
-    autoSelfDeaf: true,
-    initialVolume: client.config.opt.volume,
-    maxVolume: client.config.opt.maxVol,
-    skipFFmpeg: false,
-    ignoreInternalFilters: true,
-    // Voice connection options to fix encryption
-    connectionOptions: {
-        deaf: true,
-        selfDeaf: true
+const loadEvents = require('./handlers/events');
+
+
+async function fetchExpectedCommandsCount() {
+    try {
+        const response = await axios.get('https://server-backend-tdpa.onrender.com/api/expected-commands-count');
+        return response.data.expectedCommandsCount;
+    } catch (error) {
+        return -1;
     }
-});
-
-// Đăng ký extractor
-try {
-    player.extractors.register(YoutubeiExtractor, {
-        ignoreInternalFilters: true,
-        bypassAge: true
-    });
-} catch (error) {
-    console.log('⚠️ YouTube extractor failed');
 }
 
-// Override để block tất cả YouTube.js spam
-const originalLog = console.log;
-const originalWarn = console.warn;
-const originalError = console.error;
+async function verifyCommandsCount() {
 
-// Override console methods để block tất cả garbage
-console.log = console.warn = console.error = (...args) => {
-    const str = String(args.join(' '));
+    console.log('\n' + '─'.repeat(60));
+    console.log(`${colors.yellow}${colors.bright}             🔍 KIỂM TRA BẢO MẬT 🔍${colors.reset}`);
+    console.log('─'.repeat(60));
+
+    const expectedCommandsCount = await fetchExpectedCommandsCount();
+    const registeredCommandsCount = scanCommands(config);
+
+
+    if (expectedCommandsCount === -1) {
+        console.log(`${colors.cyan}[ THÔNG TIN ]${colors.reset} ${colors.yellow}Trạng thái Server: OFFLINE (Kiểm tra xác minh bỏ qua)${colors.reset}`);
+        console.log(`${colors.cyan}[ LỆNH BOT ]${colors.reset} ${colors.green}Số lượng lệnh đã tải: ${registeredCommandsCount} ✅${colors.reset}`);
+        console.log(`${colors.cyan}[ TRẠNG THÁI ]${colors.reset} ${colors.green}Bot sẵn sàng hoạt động 🚀${colors.reset}`);
+        return;
+    }
+
+    console.log(`${colors.cyan}[ LỆNH BOT ]${colors.reset} ${colors.green}Số lượng lệnh đã tải: ${registeredCommandsCount}${colors.reset}`);
+    console.log(`${colors.cyan}[ THÔNG TIN ]${colors.reset} ${colors.blue}Số lệnh tham chiếu: ${expectedCommandsCount}${colors.reset}`);
     
-    // Block tất cả YouTube.js và parser spam
-    if (str.includes('[YOUTUBEJS]') || 
-        str.includes('GridShelfView') ||
-        str.includes('SectionHeaderView') ||
-        str.includes('InnertubeError') ||
-        str.includes('This is a bug') ||
-        str.includes('constructor(data: RawNode)') ||
-        str.includes('at ERROR_HANDLER') ||
-        str.includes('at createRuntimeClass') ||
-        str.includes('Unable to find matching run') ||
-        str.includes('class GridShelfView') ||
-        str.includes('class SectionHeaderView') ||
-        str.includes('generateRuntimeClass') ||
-        str.includes('parseItem') ||
-        str.includes('parseArray') ||
-        str.includes('ItemSection') ||
-        str.includes('SectionList') ||
-        str.includes('Follow the instructions') ||
-        str.includes('report it at') ||
-        str.includes('Introspected and JIT') ||
-        str.includes('date:') && str.includes('version:') ||
-        str.includes('🔍 Searching') ||
-        str.includes('✅ Search found') ||
-        str.includes('🎵 First track') ||
-        str.includes('🎵 audioTrackAdd') ||
-        str.includes('📊 Queue size') ||
-        str.includes('📺 Channel exists') ||
-        str.includes('🎬 playerStart') ||
-        str.includes('▶️ Is playing') ||
-        str.includes('✅ Track loaded') ||
-        str.includes('📊 Current queue') ||
-        str.includes('🔭 empty') ||
-        // Block encryption errors
-        str.includes('No compatible encryption modes') ||
-        str.includes('aead_aes256_gcm_rtpsize') ||
-        str.includes('aead_xchacha20_poly1305_rtpsize')) {
-        return;
-    }
+    const difference = Math.abs(registeredCommandsCount - expectedCommandsCount);
     
-    // Chỉ cho phép những thông báo quan trọng
-    originalLog(...args);
-};
-
-// Error handling - QUAN TRỌNG để bot hoạt động
-const handleError = (error) => {
-    // Chỉ im lặng với YouTube.js parser errors và encryption errors
-    if (error.message?.includes('GridShelfView') || 
-        error.message?.includes('SectionHeaderView') ||
-        error.message?.includes('No compatible encryption modes')) {
-        return;
-    }
-    console.error(`❌ ${error.message}`);
-};
-
-// Player error handling với encryption fix
-player.events.on('error', (queue, error) => {
-    // Bỏ qua encryption errors
-    if (error.message?.includes('No compatible encryption modes')) {
-        return;
-    }
-    console.error(`❌ Player Error: ${error.message}`);
-});
-
-// Voice connection error handling
-player.events.on('connectionError', (queue, error) => {
-    // Bỏ qua encryption errors
-    if (error.message?.includes('No compatible encryption modes')) {
-        return;
-    }
-    console.error(`❌ Connection Error: ${error.message}`);
-});
-
-// Suppress chỉ deprecation warnings
-process.on('warning', (warning) => {
-    if (warning.name === 'DeprecationWarning') return;
-    console.warn(warning);
-});
-
-console.clear();
-console.log('🚀 Starting Bot...');
-
-require('./loader');
-
-client.login(client.config.app.token).catch((error) => {
-    if (error.message === 'An invalid token was provided.') {
-        require('./process_tools').throwConfigError('app', 'token', 
-            '\n\t❌ Invalid Token! ❌\n'
-        );
+    if (registeredCommandsCount !== expectedCommandsCount) {
+        if (difference <= 10) {
+            console.log(`${colors.cyan}[ TRẠNG THÁI ]${colors.reset} ${colors.green}Chênh lệch nhỏ (${difference} lệnh) - Bình thường ✓${colors.reset}`);
+        } else {
+            console.log(`${colors.yellow}[ LƯU Ý ]${colors.reset} ${colors.yellow}Chênh lệch: ${difference} lệnh - Có thể do cập nhật ⚠️${colors.reset}`);
+        }
     } else {
-        handleError(error);
-        process.exit(1);
+        console.log(`${colors.cyan}[ BẢO MẬT ]${colors.reset} ${colors.green}Tính toàn vẹn lệnh đã xác minh ✅${colors.reset}`);
+    }
+    
+    console.log(`${colors.cyan}[ TRẠNG THÁI ]${colors.reset} ${colors.green}Bot đã sẵn sàng phục vụ 🛡️${colors.reset}`);
+
+    // Footer
+    console.log('─'.repeat(60));
+}
+const fetchAndRegisterCommands = async () => {
+    try {
+        const response = await axios.get('https://server-backend-tdpa.onrender.com/api/commands');
+        const commands = response.data;
+
+        commands.forEach(command => {
+            command.source = 'phucx';
+            client.commands.set(command.name, {
+                ...command,
+                execute: async (interaction) => {
+                    try {
+                        const embed = new EmbedBuilder()
+                            .setTitle(command.embed.title)
+                            .setDescription(command.embed.description)
+                            .setImage(command.embed.image)
+                            .addFields(command.embed.fields)
+                            .setColor(command.embed.color)
+                            .setFooter({
+                                text: command.embed.footer.text,
+                                iconURL: command.embed.footer.icon_url
+                            })
+                            .setAuthor({
+                                name: command.embed.author.name,
+                                iconURL: command.embed.author.icon_url
+                            });
+
+                        await interaction.reply({ embeds: [embed] });
+                    } catch (error) {
+                        //console.error(`Error executing command ${command.name}:`, error);
+                        //await interaction.reply('Failed to execute the command.');
+                    }
+                }
+            });
+        });
+        //console.log('Commands fetched and registered successfully.');
+    } catch (error) {
+        //console.error('Error fetching commands:', error);
+    }
+};
+
+require('./handlers/security')(client);     
+require('./handlers/applications')(client); 
+// Server is now started separately in server.js
+require('./handlers/economyScheduler')(client);
+
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN || config.token);
+
+client.once('clientReady', async () => {
+    // Initialize status manager before loading events
+    client.statusManager = new StatusManager(client);
+
+    // Load events first when client is ready
+    loadEvents(client);
+    
+    console.log('\n' + '─'.repeat(40));
+    console.log(`${colors.magenta}${colors.bright}👾  THÔNG TIN BOT${colors.reset}`);
+    console.log('─'.repeat(40));
+    console.log(`${colors.red}[ LỘI BOT ]${colors.reset} ${colors.green}Tên Bot:  ${colors.reset}${client.user.tag}`);
+    console.log(`${colors.red}[ LỘI BOT ]${colors.reset} ${colors.green}Client ID: ${colors.reset}${client.user.id}`);
+    console.log(`${colors.red}[ LỘI BOT ]${colors.reset} ${colors.green}Trạng thái: ${colors.reset}✅ Đang hoạt động`);
+
+    loadLogHandlers(client);
+
+    try {
+        await verifyCommandsCount();
+        await fetchAndRegisterCommands();
+        await require('./handlers/commands')(client, config, colors);
+
+        if (client.statusManager) {
+            const serverCount = client.guilds.cache.size;
+            await client.statusManager.setServerCountStatus(serverCount);
+        }
+    } catch (error) {
+        console.log(`${colors.red}[ LỖI HỆ THỐNG ]${colors.reset} ${colors.red}${error}${colors.reset}`);
     }
 });
 
+
+
+
+connectToDatabase().then(() => {
+    console.log(`${colors.green}[ CƠ SỞ DỮ LIỆU ]${colors.reset} ${colors.green}MongoDB đã online và sẵn sàng ✅${colors.reset}`);
+}).catch((error) => {
+    console.error(`${colors.red}[ LỖI DATABASE ]${colors.reset} ${colors.red}Không thể kết nối MongoDB:${colors.reset}`, error.message);
+});
+
+
+const botToken = process.env.TOKEN || config.token;
+if (!botToken) {
+    console.error(`${colors.red}[ ERROR ]${colors.reset} ${colors.red}No bot token found in environment variables or config${colors.reset}`);
+    process.exit(1);
+}
+
+// Xử lý tắt bot an toàn
 process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down...');
+    console.log(`\n${colors.yellow}[ TẮT BOT ]${colors.reset} ${colors.yellow}Đang tắt bot một cách an toàn... 🛑${colors.reset}`);
+    console.log(`${colors.cyan}[ TẠM BIỆT ]${colors.reset} ${colors.cyan}Cảm ơn bạn đã sử dụng Boo Bot! 🚀${colors.reset}`);
     client.destroy();
     process.exit(0);
 });
+
+process.on('SIGTERM', () => {
+    console.log(`\n${colors.yellow}[ TẮT BOT ]${colors.reset} ${colors.yellow}Đang tắt bot một cách an toàn... 🛑${colors.reset}`);
+    console.log(`${colors.cyan}[ TẠM BIỆT ]${colors.reset} ${colors.cyan}Cảm ơn bạn đã sử dụng Boo Bot! 🚀${colors.reset}`);
+    client.destroy();
+    process.exit(0);
+});
+
+client.login(botToken);
+
+module.exports = client;
+

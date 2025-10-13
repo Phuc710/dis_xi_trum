@@ -1,0 +1,22 @@
+{
+    "token": "",
+    "language": "en",
+    "prefix": "!",
+    "mongodbUri": "",
+    "excessCommands": {
+        "utility": true,
+        "other": true,
+        "economy" : true
+    },
+    "categories": {
+        "media": true,
+        "basic": true,
+        "utility": true,
+        "moderation": true,
+        "core" :true,
+        "lavalink": true,
+        "music": true,
+        "distube": true,
+        "setups": true
+    }
+}

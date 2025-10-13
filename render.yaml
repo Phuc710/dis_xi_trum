@@ -1,15 +1,27 @@
-// render.yaml - Cấu hình cho Render
 services:
   - type: web
-    name: music-bot-boo
+    name: boo-discord-bot
     env: node
+    plan: free
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node index.js
     healthCheckPath: /health
     envVars:
-      - key: DISCORD_TOKEN
-        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: TOKEN
+        fromSecret: DISCORD_TOKEN
+      - key: MONGODB_URI
+        fromSecret: MONGODB_URI
       - key: GEMINI_API_KEY
-        sync: false
+        fromSecret: GEMINI_API_KEY
+      - key: CLIENT_ID
+        fromSecret: DISCORD_CLIENT_ID
       - key: OPENWEATHER_API_KEY
-        sync: false
+        fromSecret: OPENWEATHER_API_KEY
+      - key: MAIN_CHANNEL_ID
+        fromSecret: MAIN_CHANNEL_ID
+      - key: PHUCC_USER_ID
+        fromSecret: PHUCC_USER_ID
+      - key: GUILD_ID
+        fromSecret: GUILD_ID
