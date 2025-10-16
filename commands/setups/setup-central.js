@@ -10,7 +10,7 @@ const statusIconUrls = getStatusIconUrls();
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setup-central')
-        .setDescription('Thiết lập hệ thống nhạc tập trung - gõ tên bài hát là bot phát nhạc')
+        .setDescription('Thiết lập hệ thống nhạc Auto - gõ tên bài hát là bot phát nhạc')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addChannelOption(option =>
             option.setName('voice-channel')
@@ -61,7 +61,7 @@ module.exports = {
                     })
                     .setDescription([
                         '',
-                        '🎵 **Hệ thống nhạc tập trung**',
+                        '🎵 **Hệ thống nhạc Auto**',
                         '',
                         `🎤 **Voice Channel:** ${voiceChannel}`,
                         `🔊 **Âm lượng mặc định:** ${volume}%`,
@@ -73,7 +73,6 @@ module.exports = {
                         '• ✅ **Reaction xanh** = Phát thành công',
                         '• ❌ **Reaction đỏ** = Có lỗi',
                         '• Thông báo thông minh về bài hát tiếp theo',
-                        '• **Không xóa** tin nhắn của bạn nữa!',
                         '',
                         '✨ *Sẵn sàng lấp đầy nơi này với âm nhạc tuyệt vời chưa?*'
                     ].join('\n'))
@@ -177,7 +176,6 @@ module.exports = {
                         `• ✅ Reaction xanh = Phát thành công\n` +
                         `• ❌ Reaction đỏ = Lỗi\n` +
                         `• Thông báo thông minh về bài hát tiếp theo\n` +
-                        `• Không xóa tin nhắn của bạn nữa!\n\n` +
                         `🎵 **Voice Channel:** ${voiceChannel}\n` +
                         `🔊 **Âm lượng:** ${volume}%\n` +
                         `👥 **Role được phép:** ${allowedRole ? allowedRole : '@everyone'}\n` +

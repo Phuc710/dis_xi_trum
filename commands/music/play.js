@@ -257,7 +257,7 @@ module.exports = {
         
                     const reply = await interaction.editReply({ 
                         embeds: [embed],
-                        files: [{ attachment: musicIcons.wrongIconPath, name: 'wrong.gif' }]
+                        files: [{ attachment: musicIcons.tickIconPath, name: 'tick.gif' }]
                     });
                     setTimeout(() => reply.delete().catch(() => {}), 3000);
                 } else {
@@ -277,7 +277,7 @@ module.exports = {
         
                     const reply = await interaction.editReply({ 
                         embeds: [embed],
-                        files: [{ attachment: musicIcons.wrongIconPath, name: 'wrong.gif' }]
+                        files: [{ attachment: musicIcons.tickIconPath, name: 'tick.gif' }]
                     });
                     setTimeout(() => reply.delete().catch(() => {}), 3000);
                 }
@@ -316,7 +316,7 @@ module.exports = {
 
                 const reply = await interaction.editReply({ 
                     embeds: [embed],
-                    files: [{ attachment: musicIcons.wrongIconPath, name: 'wrong.gif' }]
+                    files: [{ attachment: musicIcons.tickIconPath, name: 'tick.gif' }]
                 });
                 setTimeout(() => reply.delete().catch(() => {}), 3000);
 

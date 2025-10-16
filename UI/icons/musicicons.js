@@ -2,7 +2,7 @@ const path = require('path');
 
 const musicIcons = {
     footerIcon: 'https://cdn.discordapp.com/emojis/865916418909536276.gif', 
-    correctIcon: 'attachment://wrong.gif',
+    correctIcon: 'attachment://tick.gif',
     tickIcon: 'attachment://tick.gif',
     playerIcon: 'attachment://itachi-sharingan.gif',
     wrongIcon: 'attachment://wrong.gif',
