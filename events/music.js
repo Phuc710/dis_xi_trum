@@ -213,6 +213,7 @@ module.exports = (client) => {
                 try {
                     await client.statusManager.setMusicStatus(track.info.title, {
                         voiceChannel,
+                        guildId: player.guildId,
                         presencePrefix: '🎵',
                         channelPrefix: '✨',
                         channelEmoji: { name: '🎵' }
@@ -323,7 +324,7 @@ module.exports = (client) => {
             
             if (client.statusManager) {
                 try {
-                    await client.statusManager.clearMusicStatus();
+                    await client.statusManager.clearMusicStatus(player.guildId);
                 } catch (statusError) {
                     console.error('[STATUS] Error clearing music presence on queue end:', statusError.message);
                 }
@@ -895,7 +896,7 @@ module.exports = (client) => {
             
             if (client.statusManager) {
                 try {
-                    await client.statusManager.clearMusicStatus();
+                    await client.statusManager.clearMusicStatus(player.guildId);
                 } catch (statusError) {
                     console.error('[STATUS] Error clearing music presence on player destroy:', statusError.message);
                 }
@@ -942,7 +943,7 @@ module.exports = (client) => {
             
             if (client.statusManager) {
                 try {
-                    await client.statusManager.clearMusicStatus();
+                    await client.statusManager.clearMusicStatus(player.guildId);
                 } catch (statusError) {
                     console.error('[STATUS] Error clearing music presence on track error:', statusError.message);
                 }
