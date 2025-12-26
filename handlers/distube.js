@@ -12,20 +12,19 @@ module.exports = async (client) => {
     const distubeConfig = require('../utils/distubeConfig'); 
     
     // Function to update bot status based on music state
-    const updateBotStatus = async (song = null, voiceChannel = null, guildId = null) => {
+    const updateBotStatus = async (song = null, voiceChannel = null) => {
         try {
             if (song && client.statusManager) {
                 // Update status to show current song
                 await client.statusManager.setMusicStatus(song.name, {
                     voiceChannel,
-                    guildId,
                     presencePrefix: '🎵',
                     channelPrefix: '✨',
                     channelEmoji: { name: '🎵' }
                 });
             } else if (client.statusManager) {
                 // Clear music status and return to default
-                await client.statusManager.clearMusicStatus(guildId);
+                await client.statusManager.clearMusicStatus();
             } else {
                 // If StatusManager isn't available yet, skip presence changes to avoid conflicts
             }
@@ -143,7 +142,7 @@ module.exports = async (client) => {
      //    console.log(`Now playing: ${song.name} in ${queue.voiceChannel?.name}`);
         
         // Update bot status to show current song
-        await updateBotStatus(song, queue.voiceChannel, queue.voiceChannel?.guild?.id);
+        await updateBotStatus(song, queue.voiceChannel);
 
         if (queue.voiceChannel) {
             await cleanupMessages(queue.voiceChannel.guild.id);
@@ -287,7 +286,7 @@ module.exports = async (client) => {
       //   console.log(`Queue finished in ${queue.voiceChannel?.name}`);
         
         // Reset bot status to default when queue finishes
-        await updateBotStatus(null, queue.voiceChannel, queue.voiceChannel?.guild?.id);
+        await updateBotStatus(null, queue.voiceChannel);
        
         if (queue.voiceChannel) {
             await cleanupMessages(queue.voiceChannel.guild.id);
@@ -326,7 +325,7 @@ module.exports = async (client) => {
        //  console.log(`Disconnected from ${queue.voiceChannel?.name}`);
         
         // Reset bot status to default when disconnecting
-        await updateBotStatus(null, queue.voiceChannel, queue.voiceChannel?.guild?.id);
+        await updateBotStatus(null, queue.voiceChannel);
    
         if (queue.voiceChannel) {
             await cleanupMessages(queue.voiceChannel.guild.id);
@@ -365,7 +364,7 @@ module.exports = async (client) => {
        // console.log(`Voice channel ${queue.voiceChannel?.name} is empty`);
         
         // Reset bot status to default when voice channel is empty
-        await updateBotStatus(null, queue.voiceChannel, queue.voiceChannel?.guild?.id);
+        await updateBotStatus(null, queue.voiceChannel);
      
         if (queue.voiceChannel) {
             await cleanupMessages(queue.voiceChannel.guild.id);
